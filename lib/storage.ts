@@ -1,8 +1,14 @@
 export type AiReviewAnswer = "Yes" | "No" | "모르겠음";
+export type SecondChoice = "기존 유지" | "일부 수정" | "판단 변경";
 
 export type AiReviewResult = {
   question: string;
   answer: AiReviewAnswer;
+};
+
+export type SecondQuestionAnswer = {
+  question: string;
+  answer: string;
 };
 
 export type JourneySubmission = {
@@ -14,8 +20,9 @@ export type JourneySubmission = {
   firstChoice: "A" | "B";
   firstReason: string;
   concern: string;
-  secondChoice: "유지" | "보완" | "전환";
+  secondChoice: SecondChoice;
   secondReason: string;
+  secondQuestionAnswers?: SecondQuestionAnswer[];
   aiQuestion: string;
   generatedPrompt?: string;
   aiAnswerSummary?: string;
