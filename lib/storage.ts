@@ -1,0 +1,45 @@
+export type JourneySubmission = {
+  id: string;
+  sessionCode: string;
+  teamName: string;
+  roundId: number;
+  roundTitle: string;
+  firstChoice: "A" | "B";
+  firstReason: string;
+  concern: string;
+  secondChoice: "유지" | "보완" | "전환";
+  secondReason: string;
+  aiQuestion: string;
+  aiFeedbackSummary: string;
+  finalLines: string[];
+  aftermath: string;
+  createdAt: string;
+};
+
+const STORAGE_KEY = "wm-decision-journey-submissions-v02";
+
+export function readSubmissions(): JourneySubmission[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveSubmission(submission: JourneySubmission) {
+  if (typeof window === "undefined") return;
+  const current = readSubmissions();
+  const withoutSameRound = current.filter(
+    (item) => !(item.teamName === submission.teamName && item.roundId === submission.roundId && item.sessionCode === submission.sessionCode)
+  );
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify([...withoutSameRound, submission]));
+}
+
+export function clearSubmissions() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(STORAGE_KEY);
+}
