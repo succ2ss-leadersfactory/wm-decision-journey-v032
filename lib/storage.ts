@@ -1,3 +1,10 @@
+export type AiReviewAnswer = "Yes" | "No" | "모르겠음";
+
+export type AiReviewResult = {
+  question: string;
+  answer: AiReviewAnswer;
+};
+
 export type JourneySubmission = {
   id: string;
   sessionCode: string;
@@ -10,9 +17,14 @@ export type JourneySubmission = {
   secondChoice: "유지" | "보완" | "전환";
   secondReason: string;
   aiQuestion: string;
+  generatedPrompt?: string;
+  aiAnswerSummary?: string;
   aiFeedbackSummary: string;
+  aiReviewResults?: AiReviewResult[];
+  aiReviewNote?: string;
   finalLines: string[];
   aftermath: string;
+  doctorKimFeedback?: string;
   createdAt: string;
 };
 
