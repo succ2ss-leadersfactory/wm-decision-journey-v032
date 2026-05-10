@@ -6,6 +6,13 @@ import { saveSubmission } from "@/lib/storage";
 import { Card, OptionCard, Pill, PrimaryButton, TextArea, TextInput } from "@/components/ui";
 
 const steps = ["입장", "상황", "1차", "돌발", "2차", "AI", "결정"];
+const reviewItems = [
+  "우리 조직의 맥락이 반영되었는가?",
+  "팀원의 감정과 체면을 고려했는가?",
+  "상사와 타부서의 기대를 놓치지 않았는가?",
+  "실행 비용을 과소평가하지 않았는가?",
+  "실제 팀장이 말할 수 있는 문장인가?",
+];
 
 function ProgressDots({ activeIndex }: { activeIndex: number }) {
   return (
@@ -94,8 +101,17 @@ export default function LearnerApp() {
   const [concern, setConcern] = useState("");
   const [secondReason, setSecondReason] = useState("");
   const [aiQuestion, setAiQuestion] = useState("");
+  const [reviewChecks, setReviewChecks] = useState<boolean[]>(reviewItems.map(() => false));
   const [finalLines, setFinalLines] = useState(["", "", "", "", ""]);
   const round = rounds[roundIndex];
+
+  const isFilled = (value: string) => value.trim().length > 0;
+  const canEnter = isFilled(code) && isFilled(team);
+  const canCompleteFirst = Boolean(firstChoice) && isFilled(reason) && isFilled(concern);
+  const canCompleteSecond = Boolean(secondChoice) && isFilled(secondReason);
+  const canCompleteAiQuestion = isFilled(aiQuestion);
+  const canCompleteReview = reviewChecks.every(Boolean);
+  const canCompleteFinal = finalLines.every(isFilled);
 
   const resetRoundInputs = () => {
     setFirstChoice(null);
@@ -104,6 +120,7 @@ export default function LearnerApp() {
     setConcern("");
     setSecondReason("");
     setAiQuestion("");
+    setReviewChecks(reviewItems.map(() => false));
     setFinalLines(["", "", "", "", ""]);
   };
 
@@ -118,21 +135,21 @@ export default function LearnerApp() {
   const goHome = () => setScreen(2);
 
   const handleSaveAndNext = () => {
-    if (!firstChoice || !secondChoice) return;
+    if (!firstChoice || !secondChoice || !canCompleteFinal) return;
     saveSubmission({
-      id: `${code || "ABC123"}-${team || "이름 미입력"}-${round.id}`,
-      sessionCode: code || "ABC123",
-      teamName: team || "이름 미입력",
+      id: `${code.trim()}-${team.trim()}-${round.id}`,
+      sessionCode: code.trim(),
+      teamName: team.trim(),
       roundId: round.id,
       roundTitle: round.title,
       firstChoice,
-      firstReason: reason,
-      concern,
+      firstReason: reason.trim(),
+      concern: concern.trim(),
       secondChoice,
-      secondReason,
-      aiQuestion,
+      secondReason: secondReason.trim(),
+      aiQuestion: aiQuestion.trim(),
       aiFeedbackSummary: `${firstChoice} 선택 후 ${secondChoice} 방향으로 판단을 조정했습니다. 상사 기대, 팀원 과부하, 고객 관점의 리스크를 함께 점검할 필요가 있습니다.`,
-      finalLines,
+      finalLines: finalLines.map((line) => line.trim()),
       aftermath: round.aftermath,
       createdAt: new Date().toISOString(),
     });
@@ -145,11 +162,15 @@ export default function LearnerApp() {
     return "다음";
   };
   const getNavNextDisabled = () => {
-    if (screen === 4) return !firstChoice;
-    if (screen === 8) return !secondChoice;
+    if (screen === 4) return !canCompleteFirst;
+    if (screen === 8) return !canCompleteSecond;
+    if (screen === 9) return !canCompleteAiQuestion;
+    if (screen === 11) return !canCompleteReview;
+    if (screen === 12) return !canCompleteFinal;
     return false;
   };
   const handleNavNext = () => {
+    if (getNavNextDisabled()) return;
     if (screen === 12) {
       handleSaveAndNext();
       return;
@@ -190,7 +211,8 @@ export default function LearnerApp() {
             <Card className="space-y-4 p-5">
               <TextInput label="세션 코드" placeholder="예) ABC123" value={code} onChange={setCode} />
               <TextInput label="팀명 / 이름" placeholder="예) 새벽등대팀 / 홍길동" value={team} onChange={setTeam} />
-              <PrimaryButton onClick={() => setScreen(1)}>여정 시작하기</PrimaryButton>
+              {!canEnter && <p className="text-center text-xs font-bold text-orange-500">세션 코드와 팀명/이름을 모두 입력해주세요.</p>}
+              <PrimaryButton onClick={() => canEnter && setScreen(1)} disabled={!canEnter}>여정 시작하기</PrimaryButton>
             </Card>
           </div>
           <p className="text-center text-xs text-slate-400">참여 방법이 궁금하신가요?</p>
@@ -258,7 +280,8 @@ export default function LearnerApp() {
           <OptionCard label="B" title={round.optionB} selected={firstChoice === "B"} onClick={() => setFirstChoice("B")} tone="teal" />
           <TextArea label="선택 이유" placeholder="이 선택을 하는 이유를 적어주세요." value={reason} onChange={setReason} />
           <TextArea label="우려되는 점" placeholder="이 선택의 위험이나 우려되는 점은 무엇인가요?" value={concern} onChange={setConcern} rows={2} />
-          <PrimaryButton onClick={next} disabled={!firstChoice}>돌발상황 확인하기</PrimaryButton>
+          {!canCompleteFirst && <p className="text-center text-xs font-bold text-orange-500">A/B 선택, 선택 이유, 우려되는 점을 모두 입력해야 다음으로 이동할 수 있습니다.</p>}
+          <PrimaryButton onClick={next} disabled={!canCompleteFirst}>돌발상황 확인하기</PrimaryButton>
         </div>
       )}
 
@@ -286,7 +309,8 @@ export default function LearnerApp() {
           <OptionCard label="보완" title="기존 선택을 보완한다" desc="방향은 유지하되 조건과 실행방식을 조정합니다." selected={secondChoice === "보완"} onClick={() => setSecondChoice("보완")} tone="teal" />
           <OptionCard label="전환" title="접근 방식을 전환한다" desc="새로운 변수에 맞춰 판단 방향을 바꿉니다." selected={secondChoice === "전환"} onClick={() => setSecondChoice("전환")} tone="purple" />
           <TextArea label="2차 판단 이유" placeholder="새롭게 중요해진 변수와 감수해야 할 비용을 적어주세요." value={secondReason} onChange={setSecondReason} />
-          <PrimaryButton onClick={next} disabled={!secondChoice}>AI 질문 작성하기</PrimaryButton>
+          {!canCompleteSecond && <p className="text-center text-xs font-bold text-orange-500">유지/보완/전환 선택과 2차 판단 이유를 모두 입력해주세요.</p>}
+          <PrimaryButton onClick={next} disabled={!canCompleteSecond}>AI 질문 작성하기</PrimaryButton>
         </div>
       )}
 
@@ -296,7 +320,8 @@ export default function LearnerApp() {
           <h2 className="text-center text-2xl font-black text-slate-900">AI에게 무엇을<br />물어보시겠습니까?</h2>
           <TextArea label="AI에게 묻고 싶은 질문" placeholder="예: 이 판단에서 제가 놓친 이해관계자 리스크는 무엇인가요?" value={aiQuestion} onChange={setAiQuestion} rows={6} />
           <Card className="bg-blue-50/70 p-4"><div className="text-sm font-extrabold text-blue-700">좋은 질문의 구조</div><p className="mt-2 text-sm leading-6 text-slate-600">역할 + 상황 + 선택 + 우려 + 원하는 출력 형식을 함께 넣으면 더 나은 피드백을 받을 수 있습니다.</p></Card>
-          <PrimaryButton onClick={next}>AI 피드백 보기</PrimaryButton>
+          {!canCompleteAiQuestion && <p className="text-center text-xs font-bold text-orange-500">AI에게 묻고 싶은 질문을 입력해주세요.</p>}
+          <PrimaryButton onClick={next} disabled={!canCompleteAiQuestion}>AI 피드백 보기</PrimaryButton>
         </div>
       )}
 
@@ -317,10 +342,19 @@ export default function LearnerApp() {
         <div className="space-y-4">
           <div className="text-center"><Pill tone="orange">비판적 검토</Pill></div>
           <h2 className="text-center text-2xl font-black text-slate-900">AI 답변을 그대로<br />믿지 마세요</h2>
-          {["우리 조직의 맥락이 반영되었는가?", "팀원의 감정과 체면을 고려했는가?", "상사와 타부서의 기대를 놓치지 않았는가?", "실행 비용을 과소평가하지 않았는가?", "실제 팀장이 말할 수 있는 문장인가?"].map((q) => (
-            <label key={q} className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm"><input type="checkbox" className="h-5 w-5 rounded border-slate-300" /><span className="text-sm font-semibold leading-6 text-slate-700">{q}</span></label>
+          {reviewItems.map((q, index) => (
+            <label key={q} className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+              <input
+                type="checkbox"
+                checked={reviewChecks[index]}
+                onChange={(event) => setReviewChecks((checks) => checks.map((checked, i) => i === index ? event.target.checked : checked))}
+                className="h-5 w-5 rounded border-slate-300"
+              />
+              <span className="text-sm font-semibold leading-6 text-slate-700">{q}</span>
+            </label>
           ))}
-          <PrimaryButton onClick={next}>최종 결정문 작성하기</PrimaryButton>
+          {!canCompleteReview && <p className="text-center text-xs font-bold text-orange-500">AI 답변 검토 항목을 모두 확인해야 다음으로 이동할 수 있습니다.</p>}
+          <PrimaryButton onClick={next} disabled={!canCompleteReview}>최종 결정문 작성하기</PrimaryButton>
         </div>
       )}
 
@@ -331,7 +365,8 @@ export default function LearnerApp() {
           {["나는 이 상황을", "나의 최종 선택은", "이 선택의 가장 큰 비용은", "그래서 붙일 실행 조건은", "내일 바로 할 첫 행동은"].map((label, i) => (
             <TextInput key={label} label={`${i + 1}. ${label}`} placeholder="내용을 입력하세요" value={finalLines[i]} onChange={(v) => setFinalLines((arr) => arr.map((x, idx) => idx === i ? v : x))} />
           ))}
-          <PrimaryButton onClick={handleSaveAndNext}>제출하고 저장하기</PrimaryButton>
+          {!canCompleteFinal && <p className="text-center text-xs font-bold text-orange-500">최종 5줄 결정문을 모두 입력해야 저장할 수 있습니다.</p>}
+          <PrimaryButton onClick={handleSaveAndNext} disabled={!canCompleteFinal}>제출하고 저장하기</PrimaryButton>
         </div>
       )}
 
