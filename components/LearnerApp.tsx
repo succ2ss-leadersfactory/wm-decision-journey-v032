@@ -113,6 +113,10 @@ export default function LearnerApp() {
     setScreen(3);
   };
 
+  const next = () => setScreen((s) => Math.min(s + 1, 15));
+  const prev = () => setScreen((s) => Math.max(s - 1, 2));
+  const goHome = () => setScreen(2);
+
   const handleSaveAndNext = () => {
     if (!firstChoice || !secondChoice) return;
     saveSubmission({
@@ -135,9 +139,6 @@ export default function LearnerApp() {
     next();
   };
 
-  const next = () => setScreen((s) => Math.min(s + 1, 15));
-  const prev = () => setScreen((s) => Math.max(s - 1, 2));
-  const goHome = () => setScreen(2);
   const getNavNextLabel = () => {
     if (screen === 12) return "저장";
     if (screen === 14) return "요약";
@@ -159,6 +160,17 @@ export default function LearnerApp() {
 
   return (
     <MobileShell step={step}>
+      {screen >= 3 && screen <= 14 && (
+        <RoundNavigation
+          onPrev={prev}
+          onHome={goHome}
+          onNext={handleNavNext}
+          nextLabel={getNavNextLabel()}
+          prevDisabled={screen === 3}
+          nextDisabled={getNavNextDisabled()}
+        />
+      )}
+
       {screen === 0 && (
         <div className="flex h-full flex-col justify-between gap-8">
           <div>
