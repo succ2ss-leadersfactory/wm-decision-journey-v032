@@ -1,5 +1,5 @@
 export type AiReviewAnswer = "Yes" | "No" | "모르겠음";
-export type SecondChoice = "기존 유지" | "일부 수정" | "판단 변경";
+export type SecondChoice = "유지" | "보완" | "전환" | "기존 유지" | "일부 수정" | "판단 변경";
 
 export type AiReviewResult = {
   question: string;
