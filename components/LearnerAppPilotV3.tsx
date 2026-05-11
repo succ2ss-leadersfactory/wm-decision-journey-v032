@@ -13,11 +13,28 @@ function hideDuplicateContentBranding() {
   });
 }
 
+function scrollContentToTop() {
+  const scrollArea = document.querySelector(".pilot-v3 .flex-1.overflow-y-auto");
+  if (scrollArea instanceof HTMLElement) {
+    scrollArea.scrollTo({ top: 0, behavior: "auto" });
+  }
+}
+
 export default function LearnerAppPilotV3() {
   useEffect(() => {
     hideDuplicateContentBranding();
-    const observer = new MutationObserver(() => hideDuplicateContentBranding());
-    observer.observe(document.body, { childList: true, subtree: true });
+    scrollContentToTop();
+
+    const observer = new MutationObserver(() => {
+      hideDuplicateContentBranding();
+      requestAnimationFrame(scrollContentToTop);
+    });
+
+    const appRoot = document.querySelector(".pilot-v3");
+    if (appRoot) {
+      observer.observe(appRoot, { childList: true, subtree: true });
+    }
+
     return () => observer.disconnect();
   }, []);
 
