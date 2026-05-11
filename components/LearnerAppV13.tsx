@@ -4,7 +4,7 @@ import LearnerAppV12 from "@/components/LearnerAppV12";
 
 function ChaBioBrandBadge() {
   return (
-    <div className="pointer-events-none absolute left-1/2 top-8 z-50 w-full max-w-[430px] -translate-x-1/2 px-8">
+    <div className="pointer-events-none absolute left-1/2 top-6 z-50 w-full max-w-[430px] -translate-x-1/2 px-8">
       <div className="flex items-center gap-3 rounded-2xl border border-white/70 bg-white/90 px-3 py-2 shadow-sm backdrop-blur-md">
         <img
           src="/cha-biogroup-ci.png"
@@ -22,7 +22,15 @@ function ChaBioBrandBadge() {
 
 export default function LearnerAppV13() {
   return (
-    <div className="relative">
+    <div className="cha-branded-app relative">
+      <style jsx global>{`
+        .cha-branded-app > div:nth-of-type(2) > div:first-child > div:first-child {
+          display: none;
+        }
+        .cha-branded-app > div:nth-of-type(2) > div:first-child {
+          padding-top: 4.75rem;
+        }
+      `}</style>
       <ChaBioBrandBadge />
       <LearnerAppV12 />
     </div>
