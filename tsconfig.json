@@ -24,5 +24,17 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "components/LearnerAppV2.tsx", "components/LearnerAppV3.tsx"]
+  "exclude": [
+    "node_modules",
+    "components/LearnerAppV2.tsx",
+    "components/LearnerAppV3.tsx",
+    "components/LearnerAppV4.tsx",
+    "components/LearnerAppV5.tsx",
+    "components/LearnerAppV6.tsx",
+    "components/LearnerAppV7.tsx",
+    "components/LearnerAppV8.tsx",
+    "components/LearnerAppV9.tsx",
+    "components/LearnerAppV10.tsx",
+    "components/LearnerAppV11.tsx"
+  ]
 }
