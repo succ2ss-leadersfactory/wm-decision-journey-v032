@@ -7,6 +7,9 @@ export default function Page() {
         .pilot-page .flex-1.overflow-y-auto div:has(> img[alt="차바이오그룹 CI"]) {
           display: none !important;
         }
+        .pilot-page > div > div:last-child {
+          display: none !important;
+        }
       `}</style>
       <LearnerAppPilotV5 />
     </main>
