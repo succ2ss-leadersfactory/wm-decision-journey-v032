@@ -35,6 +35,7 @@
     "components/LearnerAppV8.tsx",
     "components/LearnerAppV9.tsx",
     "components/LearnerAppV10.tsx",
-    "components/LearnerAppV11.tsx"
+    "components/LearnerAppV11.tsx",
+    "components/LearnerAppPilotV4.tsx"
   ]
 }
